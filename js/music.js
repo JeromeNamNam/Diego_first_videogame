@@ -48,11 +48,17 @@ const MUSIC = [
   },
 ];
 
-function startMusic(levelIdx) {
+// Appelée sur le premier geste utilisateur (keydown ou clic canvas)
+function initAudio() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
-  // Reprendre si suspendu (politique autoplay des browsers)
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function startMusic(levelIdx) {
+  // Ne rien faire si pas encore de geste utilisateur
+  if (!audioCtx) return;
   if (audioCtx.state === 'suspended') audioCtx.resume();
 
   if (currentMusicLevel === levelIdx && musicPlaying) return;
@@ -151,10 +157,12 @@ function createMuteButton() {
   });
   let muted = false;
   btn.addEventListener('click', () => {
+    initAudio(); // s'assure que AudioContext existe
     muted = !muted;
     btn.textContent = muted ? '🔇' : '🔊';
-    if (audioCtx) audioCtx.suspend();
-    if (!muted && audioCtx) {
+    if (muted) {
+      stopMusic();
+    } else {
       audioCtx.resume();
       startMusic(currentLevel);
     }

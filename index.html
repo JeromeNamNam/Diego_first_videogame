@@ -33,6 +33,7 @@
       display: none;
       position: fixed;
       inset: 0;
+      pointer-events: none;
       background: rgba(0,0,0,0.85);
       justify-content: center;
       align-items: center;
@@ -41,7 +42,7 @@
       font-family: 'Courier New', monospace;
       z-index: 10;
     }
-    #message-overlay.active { display: flex; }
+    #message-overlay.active { display: flex; pointer-events: all; }
     #message-overlay h2 { font-size: 28px; color: #ffd700; margin-bottom: 16px; }
     #message-overlay p { font-size: 18px; margin-bottom: 12px; letter-spacing: 2px; }
     #message-overlay .collected { color: #7df5a0; font-size: 22px; letter-spacing: 6px; }
@@ -102,7 +103,7 @@
     <div>ÉTOILES : <span id="ui-stars">0/5</span></div>
     <div>LETTRES : <span id="ui-letters">_____</span></div>
   </div>
-  <canvas id="gameCanvas" width="900" height="500"></canvas>
+  <canvas id="gameCanvas" width="900" height="500" tabindex="-1"></canvas>
 
   <div id="message-overlay">
     <h2 id="overlay-title">Niveau terminé !</h2>

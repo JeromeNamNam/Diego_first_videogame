@@ -166,15 +166,23 @@ let cameraX = 0;
 // ── CLAVIER ─────────────────────────────────────────────────
 const keys = {};
 window.addEventListener('keydown', e => {
+  // Premier geste : initialiser l'audio
+  initAudio();
+  if (!musicPlaying) startMusic(currentLevel);
+
   // Ne pas bloquer la saisie dans l'input de l'overlay
   if (gameState === 'overlay') return;
   keys[e.code] = true;
-  // Bloquer uniquement les touches de jeu pour éviter le scroll de page
   if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) {
     e.preventDefault();
   }
 });
-window.addEventListener('keyup',   e => { keys[e.code] = false; });
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+// Init audio aussi sur clic canvas (mobile / souris)
+canvas.addEventListener('click', () => {
+  initAudio();
+  if (!musicPlaying) startMusic(currentLevel);
+});
 
 // ── ÉTOILES RUNTIME ─────────────────────────────────────────
 let stars = [];
@@ -219,8 +227,8 @@ function initLevel() {
   gameState = 'playing';
   buildLevelStars();
   updateUI();
-  // Démarrer la musique du niveau (premier clic/touche déclenche AudioContext)
-  startMusic(currentLevel);
+  // Redémarrer la musique du nouveau niveau si audio déjà initialisé
+  if (audioCtx) startMusic(currentLevel);
 }
 
 // ── UPDATE ───────────────────────────────────────────────────
@@ -706,7 +714,13 @@ function showOverlay() {
   document.getElementById('overlay-input').value         = '';
   document.getElementById('overlay-error').textContent   = '';
   document.getElementById('message-overlay').classList.add('active');
-  setTimeout(() => document.getElementById('overlay-input').focus(), 100);
+  // Retirer le focus du canvas pour que l'input reçoive les touches
+  canvas.blur();
+  setTimeout(() => {
+    const inp = document.getElementById('overlay-input');
+    inp.focus();
+    inp.select();
+  }, 80);
 }
 
 window.checkAnswer = function () {
