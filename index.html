@@ -122,10 +122,12 @@
     <button onclick="checkAnswer()">VALIDER →</button>
   </div>
 
+  <script src="js/music.js"></script>
   <script src="js/game.js"></script>
   <script>
-    // Force majuscules en temps réel dans l'input
+    // Force majuscules + bouton mute
     document.addEventListener('DOMContentLoaded', () => {
+      createMuteButton();
       const inp = document.getElementById('overlay-input');
       inp.addEventListener('input', () => { inp.value = inp.value.toUpperCase(); });
     });

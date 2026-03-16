@@ -219,6 +219,8 @@ function initLevel() {
   gameState = 'playing';
   buildLevelStars();
   updateUI();
+  // Démarrer la musique du niveau (premier clic/touche déclenche AudioContext)
+  startMusic(currentLevel);
 }
 
 // ── UPDATE ───────────────────────────────────────────────────
@@ -714,7 +716,7 @@ window.checkAnswer = function () {
     document.getElementById('message-overlay').classList.remove('active');
     if (currentLevel < LEVELS.length - 1) {
       currentLevel++;
-      initLevel();
+      initLevel(); // startMusic() est appelé dans initLevel
     } else {
       showWin();
     }
