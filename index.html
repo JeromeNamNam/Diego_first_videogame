@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Diego's Adventure</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+    #ui {
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 8px;
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+    #ui span { color: #ffd700; font-weight: bold; }
+    canvas {
+      border: 3px solid #444;
+      display: block;
+      image-rendering: pixelated;
+    }
+    #message-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      z-index: 10;
+    }
+    #message-overlay.active { display: flex; }
+    #message-overlay h2 { font-size: 28px; color: #ffd700; margin-bottom: 16px; }
+    #message-overlay p { font-size: 18px; margin-bottom: 12px; letter-spacing: 2px; }
+    #message-overlay .collected { color: #7df5a0; font-size: 22px; letter-spacing: 6px; }
+    #message-overlay .hint { color: #aaa; font-size: 13px; margin-top: 8px; }
+    #message-overlay input {
+      margin-top: 16px;
+      padding: 8px 14px;
+      font-size: 18px;
+      font-family: 'Courier New', monospace;
+      background: #222;
+      color: #fff;
+      border: 2px solid #ffd700;
+      border-radius: 4px;
+      text-align: center;
+      letter-spacing: 4px;
+    }
+    #message-overlay button {
+      margin-top: 12px;
+      padding: 8px 24px;
+      font-size: 16px;
+      background: #ffd700;
+      color: #111;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+    }
+    #message-overlay button:hover { background: #ffec5c; }
+    #message-overlay .error { color: #ff5c5c; margin-top: 8px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <div>NIVEAU : <span id="ui-level">1 - GLACE</span></div>
+    <div>ÉTOILES : <span id="ui-stars">0/5</span></div>
+    <div>LETTRES : <span id="ui-letters">_____</span></div>
+  </div>
+  <canvas id="gameCanvas" width="900" height="500"></canvas>
+
+  <div id="message-overlay">
+    <h2 id="overlay-title">Niveau terminé !</h2>
+    <p>Lettres collectées :</p>
+    <div class="collected" id="overlay-letters"></div>
+    <p class="hint" id="overlay-hint"></p>
+    <input type="text" id="overlay-input" placeholder="Ton mot..." maxlength="5" />
+    <div class="error" id="overlay-error"></div>
+    <button onclick="checkAnswer()">VALIDER →</button>
+  </div>
+
+  <script src="js/game.js"></script>
+</body>
+</html>
