@@ -658,6 +658,22 @@ function updateUI() {
   document.getElementById('ui-letters').textContent = slots.join(' ');
 }
 
+// ── BLAGUES PAR NIVEAU ──────────────────────────────────────
+const JOKES = [
+  // Niveau 1 - Glace
+  "Pourquoi les plongeurs plongent-ils toujours en arrière ?
+Parce que sinon ils tomberaient dans le bateau ! 🤿",
+  // Niveau 2 - Eau
+  "Qu'est-ce qu'un crocodile qui surveille les valises ?
+Un bag-arre ! 🐊",
+  // Niveau 3 - Terre
+  "Pourquoi les arbres sont-ils sur Internet ?
+Pour trouver leurs raci-net ! 🌳",
+  // Niveau 4 - Feu
+  "Qu'est-ce qu'un pompier qui s'appelle Rémi ?
+Rémi l'extincteur ! 🚒",
+];
+
 // ── OVERLAY ─────────────────────────────────────────────────
 function showOverlay() {
   gameState = 'overlay';
@@ -682,6 +698,9 @@ function showOverlay() {
   }).join('');
   document.getElementById('overlay-letters').innerHTML = lettersHtml;
   document.getElementById('overlay-hint').textContent    = `Indice : ${lvl.hint}`;
+  // Blague du niveau
+  const jokeEl = document.getElementById('overlay-joke');
+  if (jokeEl) jokeEl.textContent = JOKES[currentLevel] || '';
   document.getElementById('overlay-input').value         = '';
   document.getElementById('overlay-error').textContent   = '';
   document.getElementById('message-overlay').classList.add('active');
