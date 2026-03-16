@@ -165,7 +165,15 @@ let cameraX = 0;
 
 // ── CLAVIER ─────────────────────────────────────────────────
 const keys = {};
-window.addEventListener('keydown', e => { keys[e.code] = true;  e.preventDefault(); });
+window.addEventListener('keydown', e => {
+  // Ne pas bloquer la saisie dans l'input de l'overlay
+  if (gameState === 'overlay') return;
+  keys[e.code] = true;
+  // Bloquer uniquement les touches de jeu pour éviter le scroll de page
+  if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) {
+    e.preventDefault();
+  }
+});
 window.addEventListener('keyup',   e => { keys[e.code] = false; });
 
 // ── ÉTOILES RUNTIME ─────────────────────────────────────────
@@ -655,7 +663,24 @@ function showOverlay() {
   gameState = 'overlay';
   const lvl = LEVELS[currentLevel];
   document.getElementById('overlay-title').textContent   = `⭐ Niveau ${currentLevel + 1} terminé !`;
-  document.getElementById('overlay-letters').textContent = collectedLetters.join('  ');
+  // Afficher les lettres collectées + cases vides pour les manquantes
+  const slots = Array(5).fill(null).map((_, i) => collectedLetters[i] || '?');
+  const lettersHtml = slots.map((l, i) => {
+    const collected = i < collectedLetters.length;
+    return `<span style="
+      display:inline-block;
+      width:38px; height:44px; line-height:44px;
+      margin:0 4px;
+      border-radius:6px;
+      font-size:22px; font-weight:bold;
+      text-align:center;
+      background:${collected ? '#ffd700' : 'rgba(255,255,255,0.1)'};
+      color:${collected ? '#1a0a00' : 'rgba(255,255,255,0.2)'};
+      border: 2px solid ${collected ? '#ffec5c' : 'rgba(255,255,255,0.15)'};
+      box-shadow:${collected ? '0 0 10px #ffd70066' : 'none'};
+    ">${l}</span>`;
+  }).join('');
+  document.getElementById('overlay-letters').innerHTML = lettersHtml;
   document.getElementById('overlay-hint').textContent    = `Indice : ${lvl.hint}`;
   document.getElementById('overlay-input').value         = '';
   document.getElementById('overlay-error').textContent   = '';
