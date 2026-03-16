@@ -177,7 +177,9 @@ window.addEventListener('keydown', e => {
     e.preventDefault();
   }
 });
-window.addEventListener('keyup', e => { keys[e.code] = false; });
+window.addEventListener('keyup', e => {
+  keys[e.code] = false;
+});
 // Init audio aussi sur clic canvas (mobile / souris)
 canvas.addEventListener('click', () => {
   initAudio();
@@ -714,8 +716,10 @@ function showOverlay() {
   document.getElementById('overlay-input').value         = '';
   document.getElementById('overlay-error').textContent   = '';
   document.getElementById('message-overlay').classList.add('active');
-  // Retirer le focus du canvas pour que l'input reçoive les touches
+  // Vider les touches et retirer le focus du canvas
+  Object.keys(keys).forEach(k => keys[k] = false);
   canvas.blur();
+  canvas.style.pointerEvents = 'none';
   setTimeout(() => {
     const inp = document.getElementById('overlay-input');
     inp.focus();
@@ -728,6 +732,7 @@ window.checkAnswer = function () {
   const input = document.getElementById('overlay-input').value.trim().toUpperCase();
   if (input === lvl.word) {
     document.getElementById('message-overlay').classList.remove('active');
+    canvas.style.pointerEvents = '';
     if (currentLevel < LEVELS.length - 1) {
       currentLevel++;
       initLevel(); // startMusic() est appelé dans initLevel
@@ -757,6 +762,7 @@ function showWin() {
     document.querySelector('#message-overlay button').textContent = 'VALIDER →';
     document.querySelector('#message-overlay button').onclick = window.checkAnswer;
     document.getElementById('message-overlay').classList.remove('active');
+    canvas.style.pointerEvents = '';
     initLevel();
   };
 }

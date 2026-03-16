@@ -34,6 +34,7 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
+      z-index: 9999;
       background: rgba(0,0,0,0.85);
       justify-content: center;
       align-items: center;
@@ -58,6 +59,11 @@
       border-radius: 4px;
       text-align: center;
       letter-spacing: 4px;
+      position: relative;
+      z-index: 10000;
+      cursor: text;
+      user-select: text;
+      -webkit-user-select: text;
     }
     #message-overlay button {
       margin-top: 12px;
