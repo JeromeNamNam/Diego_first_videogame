@@ -1,61 +1,81 @@
 // ============================================================
-//  Diego's Adventure — game.js  (9/16 = 360x640)
+//  Diego's Adventure — game.js  v1.7
+//  9/16 = 360x640 | carte 4x verticale | pièces | timer
 // ============================================================
 const canvas = document.getElementById('gameCanvas');
 const ctx    = canvas.getContext('2d');
 const W = 360, H = 640;
 canvas.width = W; canvas.height = H;
 
-// Les étoiles sont placées de BAS en HAUT dans l'ordre des lettres
-// pour que Diego les collecte dans l'ordre en montant
+// Hauteur totale du monde (4x l'écran)
+const WORLD_H = H * 4; // 2560px
+
 const LEVELS = [
   {
-    name:'GLACE', bgTop:'#b3e8ff', bgBot:'#d0f0ff',
+    name:'GLACE', bgTop:'#b3e8ff', bgBot:'#8ecfef',
     groundColor:'#aacfdf', platColor:'#8ec8e8', platBorder:'#5ab0d0',
     decorType:'ice', word:'IGLOO', letters:['I','G','L','O','O'],
     hint:'Un abri esquimau dans la neige',
     platforms:[
-      {x:0,  y:560,w:220,h:16}, {x:180,y:490,w:160,h:16},
-      {x:20, y:420,w:160,h:16}, {x:190,y:350,w:160,h:16},
-      {x:20, y:280,w:160,h:16}, {x:190,y:210,w:160,h:16},
-      {x:60, y:140,w:240,h:16},
+      {x:0,   y:WORLD_H-80, w:360,h:16}, // sol
+      {x:20,  y:2200,w:160,h:16}, {x:190,y:2100,w:160,h:16},
+      {x:20,  y:1950,w:160,h:16}, {x:190,y:1850,w:160,h:16},
+      {x:20,  y:1700,w:160,h:16}, {x:190,y:1600,w:160,h:16},
+      {x:20,  y:1450,w:160,h:16}, {x:190,y:1350,w:160,h:16},
+      {x:20,  y:1200,w:160,h:16}, {x:190,y:1100,w:160,h:16},
+      {x:20,  y:950, w:160,h:16}, {x:190,y:850, w:160,h:16},
+      {x:20,  y:700, w:160,h:16}, {x:190,y:600, w:160,h:16},
+      {x:60,  y:430, w:240,h:16}, {x:60, y:250, w:240,h:16},
+      {x:80,  y:100, w:200,h:16},
     ],
-    // étoile 1=I (bas), 2=G, 3=L, 4=O, 5=O (haut)
     stars:[
-      {x:110,y:520}, {x:260,y:450}, {x:100,y:380},
-      {x:270,y:310}, {x:180,y:100},
+      {x:100,y:WORLD_H-120}, {x:260,y:2060},
+      {x:100,y:1810},        {x:260,y:1310},
+      {x:180,y:60},
     ],
   },
   {
-    name:'EAU', bgTop:'#0a3a6e', bgBot:'#1a6ea8',
+    name:'EAU', bgTop:'#0a3a6e', bgBot:'#0d5a9a',
     groundColor:'#0e4a7a', platColor:'#1a7090', platBorder:'#30b8cc',
     decorType:'water', word:'OCEAN', letters:['O','C','E','A','N'],
-    hint:'Grande etendue d\'eau salee',
+    hint:"Grande etendue d'eau salee",
     platforms:[
-      {x:0,  y:560,w:200,h:16}, {x:170,y:490,w:170,h:16},
-      {x:20, y:420,w:160,h:16}, {x:190,y:350,w:160,h:16},
-      {x:20, y:280,w:160,h:16}, {x:190,y:210,w:160,h:16},
-      {x:60, y:140,w:240,h:16},
+      {x:0,   y:WORLD_H-80, w:360,h:16},
+      {x:190,y:2200,w:160,h:16}, {x:20, y:2080,w:160,h:16},
+      {x:190,y:1930,w:160,h:16}, {x:20, y:1800,w:160,h:16},
+      {x:190,y:1650,w:160,h:16}, {x:20, y:1520,w:160,h:16},
+      {x:190,y:1370,w:160,h:16}, {x:20, y:1220,w:160,h:16},
+      {x:190,y:1070,w:160,h:16}, {x:20, y:920, w:160,h:16},
+      {x:190,y:770, w:160,h:16}, {x:20, y:630, w:160,h:16},
+      {x:60, y:460, w:240,h:16}, {x:60, y:270, w:240,h:16},
+      {x:80, y:100, w:200,h:16},
     ],
     stars:[
-      {x:100,y:520}, {x:255,y:450}, {x:100,y:380},
-      {x:270,y:310}, {x:180,y:100},
+      {x:260,y:WORLD_H-120}, {x:100,y:2040},
+      {x:260,y:1760},        {x:100,y:1180},
+      {x:180,y:60},
     ],
   },
   {
-    name:'TERRE', bgTop:'#3a6e28', bgBot:'#1e4010',
+    name:'TERRE', bgTop:'#3a6e28', bgBot:'#244a14',
     groundColor:'#4a3010', platColor:'#6a4818', platBorder:'#9a7030',
     decorType:'earth', word:'ARBRE', letters:['A','R','B','R','E'],
     hint:'Il pousse vers le soleil',
     platforms:[
-      {x:0,  y:560,w:210,h:16}, {x:170,y:490,w:170,h:16},
-      {x:20, y:420,w:160,h:16}, {x:185,y:350,w:160,h:16},
-      {x:20, y:280,w:160,h:16}, {x:185,y:210,w:160,h:16},
-      {x:60, y:140,w:240,h:16},
+      {x:0,   y:WORLD_H-80, w:360,h:16},
+      {x:20,  y:2200,w:160,h:16}, {x:190,y:2070,w:160,h:16},
+      {x:20,  y:1930,w:160,h:16}, {x:190,y:1800,w:160,h:16},
+      {x:20,  y:1650,w:160,h:16}, {x:190,y:1510,w:160,h:16},
+      {x:20,  y:1360,w:160,h:16}, {x:190,y:1210,w:160,h:16},
+      {x:20,  y:1060,w:160,h:16}, {x:190,y:910, w:160,h:16},
+      {x:20,  y:760, w:160,h:16}, {x:190,y:620, w:160,h:16},
+      {x:60,  y:460, w:240,h:16}, {x:60, y:270, w:240,h:16},
+      {x:80,  y:100, w:200,h:16},
     ],
     stars:[
-      {x:105,y:520}, {x:250,y:450}, {x:100,y:380},
-      {x:265,y:310}, {x:180,y:100},
+      {x:100,y:WORLD_H-120}, {x:260,y:2030},
+      {x:100,y:1760},        {x:260,y:1170},
+      {x:180,y:60},
     ],
   },
   {
@@ -64,15 +84,20 @@ const LEVELS = [
     decorType:'fire', word:'BRAVO', letters:['B','R','A','V','O'],
     hint:'Tu as tout reussi Diego !',
     platforms:[
-      {x:0,  y:560,w:200,h:16}, {x:175,y:490,w:165,h:16},
-      {x:20, y:420,w:160,h:16}, {x:185,y:350,w:160,h:16},
-      {x:20, y:280,w:160,h:16}, {x:185,y:210,w:160,h:16},
-      {x:60, y:140,w:240,h:16},
+      {x:0,   y:WORLD_H-80, w:360,h:16},
+      {x:190,y:2200,w:160,h:16}, {x:20, y:2060,w:160,h:16},
+      {x:190,y:1920,w:160,h:16}, {x:20, y:1780,w:160,h:16},
+      {x:190,y:1640,w:160,h:16}, {x:20, y:1490,w:160,h:16},
+      {x:190,y:1350,w:160,h:16}, {x:20, y:1200,w:160,h:16},
+      {x:190,y:1060,w:160,h:16}, {x:20, y:910, w:160,h:16},
+      {x:190,y:770, w:160,h:16}, {x:20, y:620, w:160,h:16},
+      {x:60, y:460, w:240,h:16}, {x:60, y:270, w:240,h:16},
+      {x:80, y:100, w:200,h:16},
     ],
-    // B=bas R G A V O=haut — collectable de bas en haut
     stars:[
-      {x:100,y:520}, {x:255,y:450}, {x:100,y:380},
-      {x:265,y:310}, {x:180,y:100},
+      {x:260,y:WORLD_H-120}, {x:100,y:2020},
+      {x:260,y:1740},        {x:100,y:1160},
+      {x:180,y:60},
     ],
   },
 ];
@@ -80,9 +105,11 @@ const LEVELS = [
 // ── ÉTAT ────────────────────────────────────────────────────
 let currentLevel=0, collectedLetters=[], starsCollected=0;
 let gameState='waiting', stars=[], particles=[], cameraY=0;
+let coins=[], coinsCollected=0, coinSpawnTimer=0;
+let timeLeft=60, timerInterval=null;
 
-const GROUND_Y = 576;
-const player = {x:60,y:520,w:28,h:32,vx:0,vy:0,onGround:false,facing:1,frame:0,ft:0};
+const GROUND_Y = WORLD_H - 80;
+const player = {x:60, y:WORLD_H-120, w:28,h:32,vx:0,vy:0,onGround:false,facing:1,frame:0,ft:0};
 const GRAVITY=0.55, JUMP=-13;
 const keys={};
 
@@ -94,77 +121,141 @@ window.addEventListener('keydown', e=>{
 });
 window.addEventListener('keyup', e=>{ keys[e.code]=false; });
 
-// ── PAD TACTILE UNIQUE ───────────────────────────────────────
-// Position X du doigt → vitesse et direction
-// Moitié gauche = gauche, moitié droite = droite
-// Tap rapide au centre (< 200ms) = saut
+// ── PAD TACTILE ──────────────────────────────────────────────
 const pad = document.getElementById('touch-pad');
 const padCursor = document.getElementById('pad-cursor');
-let padActive=false, padX=0, padTapStart=0;
-const PAD_MAX_SPEED = 8.5; // vitesse max en bord de pad
+let padActive=false, padX=0;
+const PAD_MAX_SPEED = 8.5;
 
-function padToSpeed(clientX) {
+function padRatio(clientX) {
   const rect = pad.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const half = rect.width / 2;
-  const dx = clientX - cx;               // négatif=gauche, positif=droite
-  const ratio = Math.max(-1, Math.min(1, dx / half)); // -1..1
-  return ratio; // on mulitplie par PAD_MAX_SPEED dans update()
+  const dx = clientX - (rect.left + rect.width/2);
+  return Math.max(-1, Math.min(1, dx / (rect.width/2)));
 }
-
 pad.addEventListener('pointerdown', e=>{
   e.preventDefault();
   if (gameState!=='playing') return;
   padActive=true; padX=e.clientX;
-  padCursor.style.display='block';
-  updateCursor(e);
+  padCursor.style.display='block'; updateCursor(e);
   pad.setPointerCapture(e.pointerId);
-  // Saut immédiat au toucher — direction lue en continu pendant le saut
   if (player.onGround) { player.vy=JUMP; player.onGround=false; }
 });
 pad.addEventListener('pointermove', e=>{
-  if (!padActive) return;
-  e.preventDefault();
-  padX = e.clientX;
-  updateCursor(e);
+  if (!padActive) return; e.preventDefault();
+  padX=e.clientX; updateCursor(e);
 });
-pad.addEventListener('pointerup', e=>{
-  e.preventDefault();
-  padActive=false;
-  padCursor.style.display='none';
-});
-pad.addEventListener('pointercancel', ()=>{
-  padActive=false;
-  padCursor.style.display='none';
-});
-
-function updateCursor(e) {
-  const rect = pad.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  padCursor.style.left = x+'px';
-  padCursor.style.top  = y+'px';
+pad.addEventListener('pointerup',     ()=>{ padActive=false; padCursor.style.display='none'; });
+pad.addEventListener('pointercancel', ()=>{ padActive=false; padCursor.style.display='none'; });
+function updateCursor(e){
+  const r=pad.getBoundingClientRect();
+  padCursor.style.left=(e.clientX-r.left)+'px';
+  padCursor.style.top=(e.clientY-r.top)+'px';
 }
 
-// ── START ────────────────────────────────────────────────────
-const VERSION = 'v1.5';
+// ── MUSIQUE iOS ──────────────────────────────────────────────
+// Le canvas lui-même reçoit le premier touch → unlock audio
+canvas.addEventListener('pointerdown', ()=>{
+  initAudio(); if(!musicPlaying) startMusic(currentLevel);
+}, {once:true});
 
+// ── START ────────────────────────────────────────────────────
 function startGame() {
   document.getElementById('start-screen').style.display='none';
-  initAudio(); gameState='playing';
+  initAudio();
+  gameState='playing';
   initLevel(); createMuteButton(); loop();
+}
+
+// ── TIMER ────────────────────────────────────────────────────
+function startTimer() {
+  timeLeft = 60;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    if (gameState!=='playing') return;
+    timeLeft--;
+    if (timeLeft <= 0) {
+      timeLeft = 0;
+      clearInterval(timerInterval);
+      // Temps écoulé → respawn au bas du niveau
+      player.x=60; player.y=WORLD_H-120; player.vx=0; player.vy=0; cameraY=0;
+      timeLeft=60;
+      startTimer();
+    }
+  }, 1000);
+}
+
+// ── PIÈCES D'OR ──────────────────────────────────────────────
+function spawnCoin() {
+  coins.push({
+    x: 20 + Math.random()*(W-40),
+    y: cameraY - 20,          // juste au-dessus de l'écran
+    vy: 0,
+    vx: (Math.random()-0.5)*1.2,
+    onPlat: false,
+    life: 600,                // disparaît après ~10s
+    pulse: Math.random()*Math.PI*2,
+  });
+}
+
+function updateCoins() {
+  coinSpawnTimer++;
+  if (coinSpawnTimer >= 60) { coinSpawnTimer=0; spawnCoin(); } // 1 par seconde
+
+  const lvl = LEVELS[currentLevel];
+  for (const c of coins) {
+    if (c.onPlat) {
+      // Glisse sur la plateforme avec friction
+      c.vx *= 0.96;
+      c.x  += c.vx;
+      // Vérifier si toujours sur une plateforme
+      let still = false;
+      for (const p of lvl.platforms) {
+        if (c.x>p.x && c.x<p.x+p.w && Math.abs(c.y-p.y)<4) { still=true; break; }
+      }
+      if (!still) { c.onPlat=false; } // tombe dans le vide
+    } else {
+      c.vy += GRAVITY * 0.7;
+      c.y  += c.vy;
+      c.x  += c.vx;
+      // Collision plateformes
+      for (const p of lvl.platforms) {
+        if (c.x>p.x && c.x<p.x+p.w && c.y>p.y-4 && c.y<p.y+10 && c.vy>0) {
+          c.y=p.y; c.vy *= -0.25; c.onPlat=true; break;
+        }
+      }
+      // Sol
+      if (c.y >= GROUND_Y) { c.y=GROUND_Y; c.vy*=-0.2; c.onPlat=true; }
+    }
+    c.pulse += 0.08;
+    c.life--;
+    // Disparaît si hors écran ou vie écoulée
+    if (c.x<-20||c.x>W+20) c.life=0;
+
+    // Collecte par joueur
+    if (!c.collected) {
+      const dx=player.x+player.w/2-c.x, dy=player.y+player.h/2-c.y;
+      if (Math.sqrt(dx*dx+dy*dy)<22) {
+        c.collected=true; c.life=0;
+        coinsCollected++;
+        spawnParticles(c.x, c.y-cameraY, '#ffd700');
+        updateUI();
+      }
+    }
+  }
+  coins = coins.filter(c=>c.life>0 && !c.collected);
 }
 
 // ── INIT NIVEAU ─────────────────────────────────────────────
 function initLevel() {
-  player.x=60; player.y=520; player.vx=0; player.vy=0;
-  collectedLetters=[]; starsCollected=0; particles=[]; cameraY=0;
+  const lvl = LEVELS[currentLevel];
+  player.x=60; player.y=WORLD_H-120; player.vx=0; player.vy=0;
+  collectedLetters=[]; starsCollected=0; particles=[];
+  coins=[]; coinsCollected=0; coinSpawnTimer=0; cameraY=WORLD_H-H;
   Object.keys(keys).forEach(k=>keys[k]=false);
-  stars=LEVELS[currentLevel].stars.map((s,i)=>({
-    x:s.x,y:s.y,letter:LEVELS[currentLevel].letters[i],
-    collected:false,pulse:Math.random()*Math.PI*2,
+  stars=lvl.stars.map((s,i)=>({
+    x:s.x,y:s.y,letter:lvl.letters[i],collected:false,pulse:Math.random()*Math.PI*2,
   }));
-  updateUI(); startMusic(currentLevel);
+  updateUI(); startTimer(); startMusic(currentLevel);
 }
 
 // ── UPDATE ───────────────────────────────────────────────────
@@ -172,16 +263,12 @@ function update() {
   if (gameState!=='playing') return;
   const lvl=LEVELS[currentLevel];
 
-  // Vitesse depuis pad tactile — direction active en l'air aussi
-  let speed = 0;
+  // Direction pad
+  let speed=0;
   if (padActive) {
-    const ratio = padToSpeed(padX);
-    if (Math.abs(ratio) > 0.04) {
-      speed = ratio * PAD_MAX_SPEED;
-      player.facing = ratio>0?1:-1;
-    }
+    const r=padRatio(padX);
+    if (Math.abs(r)>0.04) { speed=r*PAD_MAX_SPEED; player.facing=r>0?1:-1; }
   }
-  // Clavier physique override
   if      (keys['ArrowLeft'] ||keys['KeyA']) { speed=-PAD_MAX_SPEED; player.facing=-1; }
   else if (keys['ArrowRight']||keys['KeyD']) { speed= PAD_MAX_SPEED; player.facing= 1; }
   if ((keys['Space']||keys['ArrowUp']) && player.onGround) {
@@ -194,7 +281,7 @@ function update() {
   player.y += player.vy;
   player.x = Math.max(0, Math.min(W-player.w, player.x));
 
-  // Collision plateformes
+  // Collisions plateformes
   player.onGround=false;
   for (const p of lvl.platforms) {
     if (player.x+player.w>p.x && player.x<p.x+p.w &&
@@ -205,12 +292,13 @@ function update() {
   if (player.y+player.h>=GROUND_Y) {
     player.y=GROUND_Y-player.h; player.vy=0; player.onGround=true;
   }
-  if (player.y>H+100) { player.x=60; player.y=520; player.vy=0; }
+  // Tombe dans le vide → respawn
+  if (player.y>WORLD_H+100) { player.x=60; player.y=WORLD_H-120; player.vy=0; }
 
-  // Caméra verticale
-  const ty=player.y-H*0.65;
-  cameraY+=(ty-cameraY)*0.1;
-  if (cameraY>0) cameraY=0;
+  // Caméra verticale — suit le joueur
+  const ty = player.y - H*0.65;
+  cameraY += (ty-cameraY)*0.1;
+  cameraY = Math.max(0, Math.min(WORLD_H-H, cameraY));
 
   // Étoiles
   for (const s of stars) {
@@ -221,9 +309,11 @@ function update() {
       s.collected=true; collectedLetters.push(s.letter); starsCollected++;
       spawnParticles(s.x, s.y-cameraY, '#ffd700');
       updateUI();
-      if (starsCollected>=5) setTimeout(showOverlay,300);
+      if (starsCollected>=5) { clearInterval(timerInterval); setTimeout(showOverlay,300); }
     }
   }
+
+  updateCoins();
 
   particles=particles.filter(p=>p.life-->0);
   particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;});
@@ -243,7 +333,7 @@ function draw(){
   ctx.clearRect(0,0,W,H);
   ctx.save(); ctx.translate(0,-cameraY);
   drawBg(); drawDecors(); drawGround(); drawPlatforms();
-  drawStars(); drawParticles(); drawPlayer();
+  drawCoins(); drawStars(); drawParticles(); drawPlayer();
   ctx.restore(); drawHUD();
 }
 
@@ -255,12 +345,14 @@ function drawBg(){
 }
 function drawGround(){
   const lvl=LEVELS[currentLevel];
-  ctx.fillStyle=lvl.groundColor; ctx.fillRect(0,GROUND_Y+32,W,80);
-  ctx.fillStyle=lvl.platBorder;  ctx.fillRect(0,GROUND_Y+32,W,4);
+  ctx.fillStyle=lvl.groundColor; ctx.fillRect(0,GROUND_Y+16,W,WORLD_H-GROUND_Y);
+  ctx.fillStyle=lvl.platBorder;  ctx.fillRect(0,GROUND_Y+16,W,4);
 }
 function drawPlatforms(){
   const lvl=LEVELS[currentLevel];
   for(const p of lvl.platforms){
+    // Culling — ne dessiner que si visible
+    if(p.y+30<cameraY || p.y>cameraY+H) continue;
     ctx.fillStyle='rgba(0,0,0,0.2)'; ctx.fillRect(p.x+4,p.y+6,p.w,12);
     ctx.fillStyle=lvl.platColor;     ctx.fillRect(p.x,p.y,p.w,p.h);
     ctx.fillStyle=lvl.platBorder;    ctx.fillRect(p.x,p.y,p.w,4);
@@ -268,9 +360,32 @@ function drawPlatforms(){
     for(let bx=p.x+8;bx<p.x+p.w-8;bx+=22) ctx.fillRect(bx,p.y+6,12,5);
   }
 }
+
+// Pièces d'or
+function drawCoins(){
+  for(const c of coins){
+    if(c.y<cameraY-20||c.y>cameraY+H+20) continue;
+    const pulse=1+Math.sin(c.pulse)*.1, r=8*pulse;
+    // Halo
+    ctx.save(); ctx.globalAlpha=0.3;
+    ctx.fillStyle='#ffd700';
+    ctx.beginPath(); ctx.arc(c.x,c.y,r+4,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+    // Corps doré
+    const g=ctx.createRadialGradient(c.x-r*.3,c.y-r*.3,0,c.x,c.y,r);
+    g.addColorStop(0,'#fff8a0'); g.addColorStop(0.5,'#ffd700'); g.addColorStop(1,'#b8860b');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.arc(c.x,c.y,r,0,Math.PI*2); ctx.fill();
+    // Reflet
+    ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.beginPath(); ctx.arc(c.x-r*.25,c.y-r*.25,r*.3,0,Math.PI*2); ctx.fill();
+  }
+}
+
 function drawStars(){
   for(const s of stars){
     if(s.collected) continue;
+    if(s.y<cameraY-40||s.y>cameraY+H+40) continue;
     const p=1+Math.sin(s.pulse)*.12, r=16*p;
     ctx.save(); ctx.globalAlpha=.25+Math.sin(s.pulse)*.1;
     ctx.fillStyle='#ffd700'; ctx.beginPath(); ctx.arc(s.x,s.y,r+7,0,Math.PI*2); ctx.fill();
@@ -313,6 +428,7 @@ function drawPlayer(){
   ctx.fillRect(-w/2,h/2-8,9,8+lo); ctx.fillRect(w/2-9,h/2-8,9,8-lo);
   ctx.restore();
 }
+
 function drawDecors(){
   const t=LEVELS[currentLevel].decorType;
   ctx.save();
@@ -338,75 +454,74 @@ function drawIce(){
 function drawWater(){
   [60,180,300].forEach(x=>{
     ctx.strokeStyle='rgba(38,180,100,0.6)'; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.moveTo(x,GROUND_Y+32);
-    for(let i=0;i<5;i++) ctx.lineTo(x+Math.sin(i*1.2+Date.now()*.001)*11,GROUND_Y+32-i*14);
+    ctx.beginPath(); ctx.moveTo(x,GROUND_Y+16);
+    for(let i=0;i<5;i++) ctx.lineTo(x+Math.sin(i*1.2+Date.now()*.001)*11,GROUND_Y+16-i*14);
     ctx.stroke();
-  });
-  [110,230,340].forEach(x=>{
-    const by=cameraY+55+Math.sin(Date.now()*.0012+x*.01)*28;
-    ctx.strokeStyle='rgba(120,210,255,0.4)'; ctx.lineWidth=1.5;
-    ctx.beginPath(); ctx.arc(x,by,7,0,Math.PI*2); ctx.stroke();
   });
 }
 function drawEarth(){
   [45,170,300].forEach(x=>{
-    ctx.fillStyle='#4a2008'; ctx.fillRect(x-5,GROUND_Y+32-48,10,48);
-    ctx.fillStyle='rgba(35,110,35,0.8)'; ctx.beginPath(); ctx.arc(x,GROUND_Y+32-58,25,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='rgba(55,150,55,0.55)';
-    ctx.beginPath(); ctx.arc(x-15,GROUND_Y+32-46,17,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(x+16,GROUND_Y+32-48,15,0,Math.PI*2); ctx.fill();
-  });
-  [120,245,350].forEach(x=>{
-    ctx.fillStyle='#bb2020'; ctx.beginPath(); ctx.arc(x,GROUND_Y+32-16,12,Math.PI,0); ctx.fill();
-    ctx.fillStyle='#fff'; ctx.fillRect(x-4,GROUND_Y+32-16,8,15);
+    ctx.fillStyle='#4a2008'; ctx.fillRect(x-5,GROUND_Y+16-48,10,48);
+    ctx.fillStyle='rgba(35,110,35,0.8)'; ctx.beginPath(); ctx.arc(x,GROUND_Y+16-58,25,0,Math.PI*2); ctx.fill();
   });
 }
 function drawFire(){
   [55,180,305].forEach(x=>{
     const f=Math.sin(Date.now()*.007+x*.01)*7;
-    const g=ctx.createRadialGradient(x,GROUND_Y+32-8,0,x,GROUND_Y+32,18+f);
+    const g=ctx.createRadialGradient(x,GROUND_Y-8,0,x,GROUND_Y+16,18+f);
     g.addColorStop(0,'#ff8800'); g.addColorStop(1,'transparent');
     ctx.fillStyle=g;
-    ctx.beginPath(); ctx.ellipse(x,GROUND_Y+32-(13+f)*.4,(11+f)*.4,13+f,0,0,Math.PI*2); ctx.fill();
-  });
-  [90,220,330].forEach(x=>{
-    const by=cameraY+70+Math.abs(Math.sin(Date.now()*.0015+x*.012))*90;
-    ctx.fillStyle=`rgba(255,${80+Math.random()*70|0},0,0.7)`;
-    ctx.beginPath(); ctx.arc(x,by,2.5,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x,GROUND_Y+16-(13+f)*.4,(11+f)*.4,13+f,0,0,Math.PI*2); ctx.fill();
   });
 }
 
 // ── HUD ──────────────────────────────────────────────────────
 function drawHUD(){
-  ctx.fillStyle='rgba(0,0,0,0.45)'; ctx.fillRect(0,0,W,28);
-  ctx.fillStyle='#ffd700'; ctx.font='bold 12px Courier New';
-  ctx.textAlign='left';  ctx.fillText(`Niv.${currentLevel+1} ${LEVELS[currentLevel].name}`,8,19);
-  ctx.textAlign='right'; ctx.fillText(`⭐${starsCollected}/5`,W-8,19);
+  // Fond HUD
+  ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,32);
+
+  ctx.fillStyle='#ffd700'; ctx.font='bold 13px Courier New';
+  ctx.textAlign='left';
+  ctx.fillText(`Niv.${currentLevel+1} ${LEVELS[currentLevel].name}`, 8, 21);
+
+  // Timer — rouge si < 15s
+  const mm=String(Math.floor(timeLeft/60)).padStart(1,'0');
+  const ss=String(timeLeft%60).padStart(2,'0');
+  ctx.fillStyle = timeLeft<=15 ? '#ff4444' : '#ffd700';
+  ctx.textAlign='center';
+  ctx.fillText(`⏱ ${mm}:${ss}`, W/2, 21);
+
+  // Pièces et étoiles
+  ctx.fillStyle='#ffd700';
+  ctx.textAlign='right';
+  ctx.fillText(`🪙${coinsCollected}  ⭐${starsCollected}/5`, W-8, 21);
 }
+
 function updateUI(){
   const lvl=LEVELS[currentLevel];
   document.getElementById('ui-level').textContent=currentLevel+1;
   document.getElementById('ui-levelname').textContent=lvl.name;
   document.getElementById('ui-stars').textContent=`${starsCollected}/5`;
+  document.getElementById('ui-coins').textContent=coinsCollected;
   const s=Array(5).fill('_'); collectedLetters.forEach((l,i)=>s[i]=l);
   document.getElementById('ui-letters').textContent=s.join(' ');
 }
 
-// ── INPUT NATIF & OVERLAY ────────────────────────────────────
+// ── OVERLAY & CLAVIER NATIF ──────────────────────────────────
 function showOverlay(){
   gameState='overlay';
   Object.keys(keys).forEach(k=>keys[k]=false);
   const lvl=LEVELS[currentLevel];
-  document.getElementById('overlay-title').textContent='Niveau '+(currentLevel+1)+' termine !';
-  document.getElementById('overlay-hint').textContent='Indice : '+lvl.hint;
+  document.getElementById('overlay-title').textContent=`Niveau ${currentLevel+1} termine !`;
+  document.getElementById('overlay-hint').textContent=`Indice : ${lvl.hint}`;
   document.getElementById('overlay-error').textContent='';
+  document.getElementById('overlay-coins').textContent=`🪙 Pièces collectées : ${coinsCollected}`;
   document.getElementById('overlay-letters').innerHTML=
-    collectedLetters.map(l=>'<div class="letter-slot found">'+l+'</div>').join('');
+    collectedLetters.map(l=>`<div class="letter-slot found">${l}</div>`).join('');
   const inp=document.getElementById('native-input');
   if(inp){ inp.value=''; }
   document.getElementById('validate-btn').disabled=false;
   document.getElementById('message-overlay').classList.add('active');
-  // Focus input apres un court delai (iOS a besoin de ca)
   setTimeout(()=>{ if(inp) inp.focus(); }, 200);
 }
 
@@ -428,8 +543,9 @@ window.checkAnswer=function(){
 function showWin(){
   document.getElementById('overlay-title').textContent='Bravo Diego !';
   document.getElementById('overlay-letters').innerHTML=
-    ['B','R','A','V','O'].map(l=>'<div class="letter-slot found">'+l+'</div>').join('');
+    ['B','R','A','V','O'].map(l=>`<div class="letter-slot found">${l}</div>`).join('');
   document.getElementById('overlay-hint').textContent='Tu as tout reussi !';
+  document.getElementById('overlay-coins').textContent=`🪙 Total pièces : ${coinsCollected}`;
   const inp=document.getElementById('native-input');
   if(inp) inp.style.display='none';
   const btn=document.getElementById('validate-btn');
@@ -438,21 +554,20 @@ function showWin(){
     if(inp){ inp.style.display=''; inp.value=''; }
     btn.textContent='VALIDER →'; btn.onclick=window.checkAnswer;
     document.getElementById('message-overlay').classList.remove('active');
-    currentLevel=0; initLevel(); gameState='playing';
+    currentLevel=0; coinsCollected=0; initLevel(); gameState='playing';
   };
 }
 
-// ── START SCREEN iOS fix ──────────────────────────────────────
+// ── START SCREEN ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', ()=>{
-  const btn = document.getElementById('play-btn');
-  if (!btn) return;
-  let started = false;
-  function doStart(e) {
-    if (started) return; started = true;
+  const btn=document.getElementById('play-btn');
+  if(!btn) return;
+  let started=false;
+  function doStart(e){
+    if(started) return; started=true;
     e.preventDefault(); e.stopPropagation();
     startGame();
   }
-  // Un seul listener sur le vrai bouton — iOS respecte le geste sur <button>
   btn.addEventListener('touchend', doStart, {passive:false});
   btn.addEventListener('click',    doStart);
 });

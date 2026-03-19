@@ -159,7 +159,7 @@
              object-fit:cover;display:block;">
     <h1>⭐ Diego's<br>Adventure ⭐</h1>
     <p style="color:#888;font-size:13px;text-align:center;">Collecte les étoiles<br>et trouve le mot secret !</p>
-    <div style="color:#555;font-size:11px;font-family:Courier New,monospace;">v1.6</div>
+    <div style="color:#555;font-size:11px;font-family:Courier New,monospace;">v1.7</div>
     <button id="play-btn" style="
       margin-top:8px;
       padding:14px 32px;
@@ -183,6 +183,7 @@
   <div id="ui">
     <div>Niv.<span id="ui-level">1</span> <span id="ui-levelname">GLACE</span></div>
     <div>⭐ <span id="ui-stars">0/5</span></div>
+    <div>🪙 <span id="ui-coins">0</span></div>
     <div>🔤 <span id="ui-letters">_____</span></div>
     <div style="cursor:pointer;font-size:14px;" onclick="location.reload(true)" title="Rafraîchir">🔄</div>
   </div>
@@ -199,6 +200,7 @@
   <div id="message-overlay">
     <h2 id="overlay-title">Niveau terminé !</h2>
     <p class="hint-txt" id="overlay-hint"></p>
+    <p id="overlay-coins" style="color:#ffd700;font-size:13px;"></p>
     <p style="font-size:11px;color:#888;">Lettres trouvées :</p>
     <div id="overlay-letters"></div>
     <p style="font-size:11px;color:#aaa;margin-top:4px;">Tape le mot :</p>
@@ -215,7 +217,7 @@
     <button id="validate-btn" onclick="checkAnswer()">VALIDER →</button>
   </div>
 
-  <script src="js/music.js?v=1773942609"></script>
-  <script src="js/game.js?v=1773942609"></script>
+  <script src="js/music.js?v=1773943113"></script>
+  <script src="js/game.js?v=1773943113"></script>
 </body>
 </html>
