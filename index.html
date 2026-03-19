@@ -150,9 +150,10 @@
 </head>
 <body>
 
-  <div id="start-screen" onclick="startGame()" ontouchend="startGame()">
+  <div id="start-screen" id="start-screen">
     <h1>⭐ Diego's<br>Adventure ⭐</h1>
     <p>Collecte les étoiles<br>et trouve le mot secret !</p>
+    <div style="color:#666;font-size:11px;font-family:Courier New,monospace;margin-top:-8px;">v1.5</div>
     <div class="tap">[ TOUCHE POUR JOUER ]</div>
   </div>
 
@@ -161,6 +162,7 @@
     <div>Niv.<span id="ui-level">1</span> <span id="ui-levelname">GLACE</span></div>
     <div>⭐ <span id="ui-stars">0/5</span></div>
     <div>🔤 <span id="ui-letters">_____</span></div>
+    <div style="cursor:pointer;font-size:14px;" onclick="location.reload(true)" title="Rafraîchir">🔄</div>
   </div>
 
   <div id="canvas-wrapper"><canvas id="gameCanvas" width="360" height="640"></canvas></div>
@@ -177,14 +179,21 @@
     <p class="hint-txt" id="overlay-hint"></p>
     <p style="font-size:11px;color:#888;">Lettres trouvées :</p>
     <div id="overlay-letters"></div>
-    <p style="font-size:11px;color:#aaa;margin-top:4px;">Forme le mot :</p>
-    <div id="answer-display"></div>
+    <p style="font-size:11px;color:#aaa;margin-top:4px;">Tape le mot :</p>
+    <input id="native-input" type="text" maxlength="5"
+      autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+      style="font-size:28px;letter-spacing:10px;text-transform:uppercase;
+             background:#1a1a1a;color:#ffd700;border:2px solid #ffd700;
+             border-radius:8px;padding:10px 16px;width:220px;text-align:center;
+             font-family:Courier New,monospace;font-weight:bold;"
+      oninput="this.value=this.value.toUpperCase()"
+      onkeydown="if(event.key==='Enter')checkAnswer()"
+    />
     <div id="overlay-error"></div>
-    <div id="virtual-keyboard"></div>
-    <button id="validate-btn" onclick="checkAnswer()" disabled>VALIDER →</button>
+    <button id="validate-btn" onclick="checkAnswer()">VALIDER →</button>
   </div>
 
-  <script src="js/music.js?v=1773941216"></script>
-  <script src="js/game.js?v=1773941216"></script>
+  <script src="js/music.js?v=1773941570"></script>
+  <script src="js/game.js?v=1773941570"></script>
 </body>
 </html>

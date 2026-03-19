@@ -101,7 +101,7 @@ window.addEventListener('keyup', e=>{ keys[e.code]=false; });
 const pad = document.getElementById('touch-pad');
 const padCursor = document.getElementById('pad-cursor');
 let padActive=false, padX=0, padTapStart=0;
-const PAD_MAX_SPEED = 5.5; // vitesse max en bord de pad
+const PAD_MAX_SPEED = 8.5; // vitesse max en bord de pad
 
 function padToSpeed(clientX) {
   const rect = pad.getBoundingClientRect();
@@ -147,6 +147,8 @@ function updateCursor(e) {
 }
 
 // ── START ────────────────────────────────────────────────────
+const VERSION = 'v1.5';
+
 function startGame() {
   document.getElementById('start-screen').style.display='none';
   initAudio(); gameState='playing';
@@ -174,7 +176,7 @@ function update() {
   let speed = 0;
   if (padActive) {
     const ratio = padToSpeed(padX);
-    if (Math.abs(ratio) > 0.08) {
+    if (Math.abs(ratio) > 0.04) {
       speed = ratio * PAD_MAX_SPEED;
       player.facing = ratio>0?1:-1;
     }
@@ -390,81 +392,69 @@ function updateUI(){
   document.getElementById('ui-letters').textContent=s.join(' ');
 }
 
-// ── CLAVIER VIRTUEL & OVERLAY ────────────────────────────────
-const KB_ROWS=['AZERTYUIOP','QSDFGHJKLM','WXCVBN'];
-let answerLetters=[];
-
-function buildKeyboard(){
-  const kb=document.getElementById('virtual-keyboard');
-  kb.innerHTML='';
-  KB_ROWS.forEach(row=>{
-    const div=document.createElement('div'); div.className='kb-row';
-    [...row].forEach(l=>{
-      const btn=document.createElement('button');
-      btn.className='kb-key'; btn.textContent=l;
-      btn.addEventListener('click',()=>kbPress(l));
-      div.appendChild(btn);
-    });
-    if(row===KB_ROWS[KB_ROWS.length-1]){
-      const b=document.createElement('button');
-      b.className='kb-key kb-backspace'; b.textContent='⌫';
-      b.addEventListener('click',kbBack); div.appendChild(b);
-    }
-    kb.appendChild(div);
-  });
-}
-function kbPress(l){ if(answerLetters.length>=5)return; answerLetters.push(l); refresh(); }
-function kbBack(){ if(!answerLetters.length)return; answerLetters.pop(); refresh(); }
-function refresh(){
-  document.querySelectorAll('.answer-slot').forEach((s,i)=>s.textContent=answerLetters[i]||'');
-  document.getElementById('validate-btn').disabled=answerLetters.length<5;
-  document.getElementById('overlay-error').textContent='';
-}
-
+// ── INPUT NATIF & OVERLAY ────────────────────────────────────
 function showOverlay(){
-  gameState='overlay'; answerLetters=[];
+  gameState='overlay';
   Object.keys(keys).forEach(k=>keys[k]=false);
   const lvl=LEVELS[currentLevel];
-  document.getElementById('overlay-title').textContent=`Niveau ${currentLevel+1} termine !`;
-  document.getElementById('overlay-hint').textContent=`Indice : ${lvl.hint}`;
+  document.getElementById('overlay-title').textContent='Niveau '+(currentLevel+1)+' termine !';
+  document.getElementById('overlay-hint').textContent='Indice : '+lvl.hint;
   document.getElementById('overlay-error').textContent='';
   document.getElementById('overlay-letters').innerHTML=
-    collectedLetters.map(l=>`<div class="letter-slot found">${l}</div>`).join('');
-  const ad=document.getElementById('answer-display');
-  ad.innerHTML=Array(5).fill('<div class="answer-slot"></div>').join('');
-  ad.querySelectorAll('.answer-slot').forEach(s=>s.addEventListener('click',kbBack));
-  document.getElementById('validate-btn').disabled=true;
-  buildKeyboard();
+    collectedLetters.map(l=>'<div class="letter-slot found">'+l+'</div>').join('');
+  const inp=document.getElementById('native-input');
+  if(inp){ inp.value=''; }
+  document.getElementById('validate-btn').disabled=false;
   document.getElementById('message-overlay').classList.add('active');
+  // Focus input apres un court delai (iOS a besoin de ca)
+  setTimeout(()=>{ if(inp) inp.focus(); }, 200);
 }
 
 window.checkAnswer=function(){
   const lvl=LEVELS[currentLevel];
-  if(answerLetters.join('')===lvl.word){
+  const inp=document.getElementById('native-input');
+  const typed=(inp?inp.value:'').trim().toUpperCase();
+  if(typed===lvl.word){
     document.getElementById('message-overlay').classList.remove('active');
+    if(inp) inp.blur();
     if(currentLevel<LEVELS.length-1){ currentLevel++; initLevel(); gameState='playing'; }
     else showWin();
   } else {
     document.getElementById('overlay-error').textContent='Pas le bon mot !';
-    answerLetters=[]; refresh();
+    if(inp){ inp.value=''; inp.focus(); }
   }
 };
 
 function showWin(){
   document.getElementById('overlay-title').textContent='Bravo Diego !';
   document.getElementById('overlay-letters').innerHTML=
-    ['B','R','A','V','O'].map(l=>`<div class="letter-slot found">${l}</div>`).join('');
+    ['B','R','A','V','O'].map(l=>'<div class="letter-slot found">'+l+'</div>').join('');
   document.getElementById('overlay-hint').textContent='Tu as tout reussi !';
-  document.getElementById('answer-display').innerHTML='';
-  document.getElementById('virtual-keyboard').innerHTML='';
+  const inp=document.getElementById('native-input');
+  if(inp) inp.style.display='none';
   const btn=document.getElementById('validate-btn');
   btn.disabled=false; btn.textContent='Rejouer';
   btn.onclick=()=>{
+    if(inp){ inp.style.display=''; inp.value=''; }
     btn.textContent='VALIDER →'; btn.onclick=window.checkAnswer;
     document.getElementById('message-overlay').classList.remove('active');
     currentLevel=0; initLevel(); gameState='playing';
   };
 }
+
+// ── START SCREEN iOS fix ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', ()=>{
+  const ss=document.getElementById('start-screen');
+  if(!ss) return;
+  let started=false;
+  function doStart(e){
+    if(started) return; started=true;
+    e.preventDefault();
+    startGame();
+  }
+  ss.addEventListener('touchend', doStart, {passive:false});
+  ss.addEventListener('click', doStart);
+});
 
 // ── BOUCLE ───────────────────────────────────────────────────
 function loop(){ update(); draw(); requestAnimationFrame(loop); }
