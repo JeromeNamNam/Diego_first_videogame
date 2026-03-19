@@ -16,90 +16,87 @@
       overflow: hidden;
     }
     #ui {
-      color: #fff;
-      font-size: 14px;
-      margin-bottom: 8px;
-      display: flex;
-      gap: 30px;
-      align-items: center;
+      color: #fff; font-size: 14px; margin-bottom: 8px;
+      display: flex; gap: 30px; align-items: center;
     }
     #ui span { color: #ffd700; font-weight: bold; }
-    canvas {
-      border: 3px solid #444;
-      display: block;
-      image-rendering: pixelated;
-    }
+    canvas { border: 3px solid #444; display: block; image-rendering: pixelated; }
+
+    /* ── OVERLAY ── */
     #message-overlay {
       display: none;
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.88);
+      justify-content: center; align-items: center; flex-direction: column;
+      color: #fff; font-family: 'Courier New', monospace;
       z-index: 9999;
-      background: rgba(0,0,0,0.85);
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      color: #fff;
-      font-family: 'Courier New', monospace;
-      z-index: 10;
     }
-    #message-overlay.active { display: flex; pointer-events: all; }
-    #message-overlay h2 { font-size: 28px; color: #ffd700; margin-bottom: 16px; }
-    #message-overlay p { font-size: 18px; margin-bottom: 12px; letter-spacing: 2px; }
-    #message-overlay .collected { color: #7df5a0; font-size: 22px; letter-spacing: 6px; }
-    #message-overlay .hint { color: #aaa; font-size: 13px; margin-top: 8px; }
-    #message-overlay input {
-      margin-top: 16px;
-      padding: 8px 14px;
-      font-size: 18px;
-      font-family: 'Courier New', monospace;
-      background: #222;
-      color: #fff;
-      border: 2px solid #ffd700;
-      border-radius: 4px;
-      text-align: center;
-      letter-spacing: 4px;
-      position: relative;
-      z-index: 10000;
-      cursor: text;
-      user-select: text;
-      -webkit-user-select: text;
+    #message-overlay.active { display: flex; }
+    #message-overlay h2 { font-size: 26px; color: #ffd700; margin-bottom: 12px; }
+    #message-overlay .hint { color: #aaa; font-size: 13px; margin: 6px 0 10px; }
+
+    /* Cases lettres collectées */
+    #overlay-letters { display: flex; gap: 8px; margin: 8px 0; }
+    .letter-slot {
+      width: 42px; height: 48px; line-height: 48px;
+      border-radius: 7px; font-size: 24px; font-weight: bold;
+      text-align: center; border: 2px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.2);
     }
-    #message-overlay button {
-      margin-top: 12px;
-      padding: 8px 24px;
-      font-size: 16px;
-      background: #ffd700;
-      color: #111;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: 'Courier New', monospace;
-      font-weight: bold;
+    .letter-slot.found {
+      background: #ffd700; color: #1a0a00;
+      border-color: #ffec5c; box-shadow: 0 0 12px #ffd70077;
     }
-    #message-overlay button:hover { background: #ffec5c; }
-    #message-overlay .error { color: #ff5c5c; margin-top: 8px; font-size: 14px; }
+
+    /* Zone réponse : cases à remplir */
+    #answer-display { display: flex; gap: 8px; margin: 14px 0 6px; }
+    .answer-slot {
+      width: 46px; height: 52px; line-height: 52px;
+      border-radius: 7px; font-size: 26px; font-weight: bold;
+      text-align: center; background: #1a1a1a;
+      border: 2px solid #ffd700; color: #fff;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .answer-slot:hover { background: #2a2a00; }
+
+    /* Clavier virtuel A–Z */
+    #virtual-keyboard { margin: 10px 0 6px; max-width: 420px; }
+    .kb-row { display: flex; gap: 5px; justify-content: center; margin-bottom: 5px; }
+    .kb-key {
+      width: 36px; height: 36px; line-height: 36px;
+      border-radius: 5px; font-size: 15px; font-weight: bold;
+      text-align: center; background: #2a2a2a;
+      border: 1px solid #555; color: #fff;
+      cursor: pointer; user-select: none;
+      transition: background 0.1s, transform 0.08s;
+    }
+    .kb-key:hover  { background: #444; }
+    .kb-key:active { transform: scale(0.9); }
+    .kb-key.used   { background: #111; color: #444; border-color: #333; pointer-events: none; }
+    .kb-backspace {
+      width: 56px; background: #3a1a00; border-color: #ff6a00; color: #ff9900;
+    }
+
+    #overlay-error { color: #ff5c5c; font-size: 13px; min-height: 18px; margin: 2px 0; }
+
+    #validate-btn {
+      margin-top: 10px; padding: 10px 32px;
+      font-size: 16px; background: #ffd700; color: #111;
+      border: none; border-radius: 5px; cursor: pointer;
+      font-family: 'Courier New', monospace; font-weight: bold;
+    }
+    #validate-btn:hover { background: #ffec5c; }
+    #validate-btn:disabled { background: #555; color: #999; cursor: default; }
+
+    /* Blague */
     #overlay-joke {
-      margin-top: 18px;
-      padding: 14px 20px;
-      background: rgba(255,255,255,0.07);
-      border-left: 4px solid #ffd700;
-      border-radius: 6px;
-      color: #fff;
-      font-size: 15px;
-      white-space: pre-line;
-      max-width: 420px;
-      text-align: left;
-      line-height: 1.6;
+      margin-top: 10px; padding: 10px 18px;
+      background: rgba(255,255,255,0.06); border-left: 4px solid #ffd700;
+      border-radius: 6px; color: #ddd; font-size: 13px;
+      white-space: pre-line; max-width: 400px; line-height: 1.5;
     }
     #overlay-joke::before {
-      content: '😂 Blague du niveau : ';
-      display: block;
-      color: #ffd700;
-      font-size: 12px;
-      font-weight: bold;
-      margin-bottom: 6px;
-      letter-spacing: 1px;
+      content: '😂  '; display: inline;
     }
   </style>
 </head>
@@ -109,35 +106,28 @@
     <div>ÉTOILES : <span id="ui-stars">0/5</span></div>
     <div>LETTRES : <span id="ui-letters">_____</span></div>
   </div>
-  <canvas id="gameCanvas" width="900" height="500" tabindex="-1"></canvas>
+  <canvas id="gameCanvas" width="900" height="500"></canvas>
 
   <div id="message-overlay">
     <h2 id="overlay-title">Niveau terminé !</h2>
-    <p>Lettres collectées :</p>
-    <div class="collected" id="overlay-letters"></div>
+    <p style="font-size:13px;color:#aaa;margin-bottom:4px;">Lettres trouvées :</p>
+    <div id="overlay-letters"></div>
     <p class="hint" id="overlay-hint"></p>
+
+    <p style="font-size:13px;color:#aaa;margin-bottom:4px;">Forme le mot avec le clavier :</p>
+    <div id="answer-display"></div>
+    <div id="overlay-error"></div>
+
+    <div id="virtual-keyboard"></div>
+
+    <button id="validate-btn" onclick="checkAnswer()" disabled>VALIDER →</button>
     <div id="overlay-joke"></div>
-    <p style="color:#aaa; font-size:13px; margin-top:14px; margin-bottom:6px;">
-      ✏️ Tape le mot formé par les lettres ci-dessus :
-    </p>
-    <input type="text" id="overlay-input" placeholder="Ton mot..."
-      maxlength="5" autocomplete="off" autocorrect="off" spellcheck="false"
-      onclick="this.focus()"
-      style="font-size:24px; letter-spacing:8px; text-transform:uppercase;"
-    />
-    <div class="error" id="overlay-error"></div>
-    <button onclick="checkAnswer()">VALIDER →</button>
   </div>
 
   <script src="js/music.js"></script>
   <script src="js/game.js"></script>
   <script>
-    // Force majuscules + bouton mute
-    document.addEventListener('DOMContentLoaded', () => {
-      createMuteButton();
-      const inp = document.getElementById('overlay-input');
-      inp.addEventListener('input', () => { inp.value = inp.value.toUpperCase(); });
-    });
+    document.addEventListener('DOMContentLoaded', () => { createMuteButton(); });
   </script>
 </body>
 </html>

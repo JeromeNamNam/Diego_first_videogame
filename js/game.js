@@ -686,83 +686,120 @@ Pour trouver leurs raci-net ! 🌳",
 Rémi l'extincteur ! 🚒",
 ];
 
-// ── OVERLAY ─────────────────────────────────────────────────
+// ── CLAVIER VIRTUEL & OVERLAY ───────────────────────────────
+const KB_ROWS = ['AZERTYUIOP', 'QSDFGHJKLM', 'WXCVBN'];
+let answerLetters = [];
+
+function buildKeyboard() {
+  const kb = document.getElementById('virtual-keyboard');
+  kb.innerHTML = '';
+  KB_ROWS.forEach(row => {
+    const div = document.createElement('div');
+    div.className = 'kb-row';
+    [...row].forEach(letter => {
+      const btn = document.createElement('button');
+      btn.className = 'kb-key';
+      btn.textContent = letter;
+      btn.dataset.letter = letter;
+      btn.addEventListener('click', () => kbPress(letter));
+      div.appendChild(btn);
+    });
+    if (row === KB_ROWS[KB_ROWS.length - 1]) {
+      const back = document.createElement('button');
+      back.className = 'kb-key kb-backspace';
+      back.textContent = String.fromCharCode(9003); // ⌫
+      back.addEventListener('click', kbBackspace);
+      div.appendChild(back);
+    }
+    kb.appendChild(div);
+  });
+}
+
+function kbPress(letter) {
+  if (answerLetters.length >= 5) return;
+  answerLetters.push(letter);
+  updateAnswerDisplay();
+}
+
+function kbBackspace() {
+  if (answerLetters.length === 0) return;
+  answerLetters.pop();
+  updateAnswerDisplay();
+}
+
+function updateAnswerDisplay() {
+  const slots = document.querySelectorAll('.answer-slot');
+  slots.forEach((slot, i) => { slot.textContent = answerLetters[i] || ''; });
+  document.getElementById('validate-btn').disabled = (answerLetters.length < 5);
+  document.getElementById('overlay-error').textContent = '';
+}
+
 function showOverlay() {
   gameState = 'overlay';
+  answerLetters = [];
+  Object.keys(keys).forEach(k => keys[k] = false);
+
   const lvl = LEVELS[currentLevel];
-  document.getElementById('overlay-title').textContent   = `⭐ Niveau ${currentLevel + 1} terminé !`;
-  // Afficher les lettres collectées + cases vides pour les manquantes
-  const slots = Array(5).fill(null).map((_, i) => collectedLetters[i] || '?');
-  const lettersHtml = slots.map((l, i) => {
-    const collected = i < collectedLetters.length;
-    return `<span style="
-      display:inline-block;
-      width:38px; height:44px; line-height:44px;
-      margin:0 4px;
-      border-radius:6px;
-      font-size:22px; font-weight:bold;
-      text-align:center;
-      background:${collected ? '#ffd700' : 'rgba(255,255,255,0.1)'};
-      color:${collected ? '#1a0a00' : 'rgba(255,255,255,0.2)'};
-      border: 2px solid ${collected ? '#ffec5c' : 'rgba(255,255,255,0.15)'};
-      box-shadow:${collected ? '0 0 10px #ffd70066' : 'none'};
-    ">${l}</span>`;
-  }).join('');
-  document.getElementById('overlay-letters').innerHTML = lettersHtml;
-  document.getElementById('overlay-hint').textContent    = `Indice : ${lvl.hint}`;
-  // Blague du niveau
+  document.getElementById('overlay-title').textContent = '\u2b50 Niveau ' + (currentLevel + 1) + ' termine !';
+  document.getElementById('overlay-hint').textContent  = 'Indice : ' + lvl.hint;
+  document.getElementById('overlay-error').textContent = '';
+
+  const lettersEl = document.getElementById('overlay-letters');
+  lettersEl.innerHTML = collectedLetters.map(l =>
+    '<div class="letter-slot found">' + l + '</div>'
+  ).join('');
+
+  const answerEl = document.getElementById('answer-display');
+  answerEl.innerHTML = Array(5).fill('<div class="answer-slot"></div>').join('');
+  answerEl.querySelectorAll('.answer-slot').forEach(slot => {
+    slot.addEventListener('click', kbBackspace);
+  });
+
+  document.getElementById('validate-btn').disabled = true;
+
   const jokeEl = document.getElementById('overlay-joke');
   if (jokeEl) jokeEl.textContent = JOKES[currentLevel] || '';
-  document.getElementById('overlay-input').value         = '';
-  document.getElementById('overlay-error').textContent   = '';
+
+  buildKeyboard();
   document.getElementById('message-overlay').classList.add('active');
-  // Vider les touches et retirer le focus du canvas
-  Object.keys(keys).forEach(k => keys[k] = false);
-  canvas.blur();
-  canvas.style.pointerEvents = 'none';
-  setTimeout(() => {
-    const inp = document.getElementById('overlay-input');
-    inp.focus();
-    inp.select();
-  }, 80);
 }
 
 window.checkAnswer = function () {
   const lvl = LEVELS[currentLevel];
-  const input = document.getElementById('overlay-input').value.trim().toUpperCase();
-  if (input === lvl.word) {
+  const typed = answerLetters.join('');
+  if (typed === lvl.word) {
     document.getElementById('message-overlay').classList.remove('active');
-    canvas.style.pointerEvents = '';
     if (currentLevel < LEVELS.length - 1) {
       currentLevel++;
-      initLevel(); // startMusic() est appelé dans initLevel
+      initLevel();
     } else {
       showWin();
     }
   } else {
-    document.getElementById('overlay-error').textContent = '❌ Ce n\'est pas le bon mot. Réessaie !';
+    document.getElementById('overlay-error').textContent = 'Pas le bon mot — reessaie !';
+    answerLetters = [];
+    updateAnswerDisplay();
   }
 };
 
-// Valider avec Entrée
-document.addEventListener('keydown', e => {
-  if (gameState === 'overlay' && e.code === 'Enter') window.checkAnswer();
-});
-
 function showWin() {
+  answerLetters = [];
   document.getElementById('message-overlay').classList.add('active');
-  document.getElementById('overlay-title').textContent   = '🏆 Bravo Diego ! Tu as tout réussi !';
-  document.getElementById('overlay-letters').textContent = 'B  R  A  V  O';
-  document.getElementById('overlay-hint').textContent    = 'Tu es un vrai aventurier !';
-  document.getElementById('overlay-input').style.display = 'none';
-  document.querySelector('#message-overlay button').textContent = '🔁 Rejouer';
-  document.querySelector('#message-overlay button').onclick = () => {
+  document.getElementById('overlay-title').textContent = '\ud83c\udfc6 Bravo Diego ! Tu as tout reussi !';
+  document.getElementById('overlay-letters').innerHTML =
+    ['B','R','A','V','O'].map(l => '<div class="letter-slot found">' + l + '</div>').join('');
+  document.getElementById('overlay-hint').textContent  = 'Tu es un vrai aventurier !';
+  document.getElementById('overlay-joke').textContent  = '';
+  document.getElementById('virtual-keyboard').innerHTML = '';
+  document.getElementById('answer-display').innerHTML  = '';
+  const btn = document.getElementById('validate-btn');
+  btn.disabled    = false;
+  btn.textContent = 'Rejouer';
+  btn.onclick = () => {
     currentLevel = 0;
-    document.getElementById('overlay-input').style.display = '';
-    document.querySelector('#message-overlay button').textContent = 'VALIDER →';
-    document.querySelector('#message-overlay button').onclick = window.checkAnswer;
+    btn.textContent = 'VALIDER ->';
+    btn.onclick = window.checkAnswer;
     document.getElementById('message-overlay').classList.remove('active');
-    canvas.style.pointerEvents = '';
     initLevel();
   };
 }
