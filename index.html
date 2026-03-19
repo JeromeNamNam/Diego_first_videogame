@@ -2,168 +2,159 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Diego's Adventure</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      background:#111;
+    * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
+    html, body {
+      background:#111; height:100%;
       display:flex; flex-direction:column;
       align-items:center; justify-content:flex-start;
-      min-height:100vh;
-      font-family:'Courier New', monospace;
-      overflow:hidden;
+      overflow:hidden; font-family:'Courier New',monospace;
     }
 
-    /* ── HUD au-dessus du canvas ── */
+    /* HUD */
     #ui {
-      color:#fff; font-size:13px;
-      width:400px; max-width:100vw;
+      width:360px; max-width:100vw;
       display:flex; justify-content:space-between;
-      padding:6px 10px;
-      background:#1a1a1a;
-      border-bottom:2px solid #333;
+      padding:5px 10px; background:#1a1a1a;
+      color:#fff; font-size:12px;
+      border-bottom:2px solid #333; flex-shrink:0;
     }
     #ui span { color:#ffd700; font-weight:bold; }
 
-    /* ── Canvas ── */
+    /* Canvas 9/16 */
     canvas {
-      display:block;
-      width:400px; max-width:100vw;
-      image-rendering:pixelated;
+      display:block; width:360px; max-width:100vw;
+      flex-shrink:0; image-rendering:pixelated;
     }
 
-    /* ── Clavier virtuel sous le canvas ── */
-    #controls {
-      width:400px; max-width:100vw;
-      background:#1a1a1a;
-      border-top:2px solid #333;
-      padding:8px 6px 10px;
-      display:flex; flex-direction:column; gap:6px;
+    /* Zone contrôle tactile — un seul grand pad */
+    #touch-pad {
+      width:360px; max-width:100vw; height:130px;
+      background:#161616; border-top:2px solid #333;
+      position:relative; flex-shrink:0;
+      cursor:pointer; user-select:none; -webkit-user-select:none;
     }
-    .ctrl-row { display:flex; justify-content:center; gap:6px; }
-    .ctrl-btn {
-      background:#2a2a2a; color:#fff;
-      border:2px solid #444; border-radius:8px;
-      font-size:20px; font-weight:bold;
-      cursor:pointer; user-select:none;
-      -webkit-user-select:none;
-      transition:background 0.1s, transform 0.08s;
+    /* Ligne centrale verticale — repère visuel */
+    #touch-pad::before {
+      content:'';
+      position:absolute; left:50%; top:10%; bottom:10%;
+      width:2px; background:rgba(255,215,0,0.25);
+      transform:translateX(-50%);
     }
-    .ctrl-btn:active { background:#555; transform:scale(0.93); }
-    .btn-left, .btn-right { width:80px; height:50px; }
-    .btn-jump { width:120px; height:50px; background:#1a3a1a; border-color:#3a8a3a; font-size:24px; }
+    /* Point central */
+    #touch-pad::after {
+      content:'↑';
+      position:absolute; left:50%; top:50%;
+      transform:translate(-50%,-50%);
+      font-size:22px; color:rgba(255,215,0,0.35);
+      pointer-events:none;
+    }
+    /* Indicateur de zone gauche/droite */
+    #pad-left-hint, #pad-right-hint {
+      position:absolute; top:50%; transform:translateY(-50%);
+      font-size:18px; color:rgba(255,255,255,0.15);
+      pointer-events:none;
+    }
+    #pad-left-hint  { left:12px; }
+    #pad-right-hint { right:12px; }
+    /* Curseur visuel de position du doigt */
+    #pad-cursor {
+      position:absolute; width:44px; height:44px;
+      border-radius:50%; border:3px solid rgba(255,215,0,0.6);
+      background:rgba(255,215,0,0.12);
+      transform:translate(-50%,-50%);
+      pointer-events:none; display:none;
+    }
 
-    /* ── OVERLAY fin de niveau ── */
+    /* OVERLAY */
     #message-overlay {
       display:none; position:fixed; inset:0;
-      background:rgba(0,0,0,0.92);
-      justify-content:center; align-items:center; flex-direction:column;
-      color:#fff; font-family:'Courier New', monospace;
-      z-index:9999; gap:8px;
-      padding:20px;
+      background:rgba(0,0,0,0.93);
+      flex-direction:column; align-items:center; justify-content:center;
+      gap:8px; padding:16px; z-index:9999;
+      color:#fff; font-family:'Courier New',monospace;
     }
     #message-overlay.active { display:flex; }
-    #message-overlay h2 { font-size:22px; color:#ffd700; text-align:center; }
-    .hint-txt { color:#aaa; font-size:12px; }
-
-    /* Lettres trouvées */
+    #message-overlay h2 { font-size:20px; color:#ffd700; text-align:center; }
+    .hint-txt { color:#aaa; font-size:11px; text-align:center; }
     #overlay-letters { display:flex; gap:6px; }
     .letter-slot {
-      width:44px; height:50px; line-height:50px;
-      border-radius:7px; font-size:24px; font-weight:bold;
-      text-align:center;
-      background:rgba(255,255,255,0.08);
-      color:rgba(255,255,255,0.2);
-      border:2px solid rgba(255,255,255,0.12);
+      width:42px; height:48px; line-height:48px; border-radius:7px;
+      font-size:22px; font-weight:bold; text-align:center;
+      background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.2);
+      border:2px solid rgba(255,255,255,0.1);
     }
     .letter-slot.found {
       background:#ffd700; color:#1a0a00;
-      border-color:#ffec5c; box-shadow:0 0 10px #ffd70066;
+      border-color:#ffec5c; box-shadow:0 0 10px #ffd70055;
     }
-
-    /* Cases réponse */
     #answer-display { display:flex; gap:6px; }
     .answer-slot {
-      width:44px; height:50px; line-height:50px;
-      border-radius:7px; font-size:24px; font-weight:bold;
-      text-align:center; background:#1a1a1a;
-      border:2px solid #ffd700; color:#fff;
-      cursor:pointer;
+      width:42px; height:48px; line-height:48px; border-radius:7px;
+      font-size:22px; font-weight:bold; text-align:center;
+      background:#1a1a1a; border:2px solid #ffd700; color:#fff; cursor:pointer;
     }
-
-    /* Clavier A-Z overlay */
-    #virtual-keyboard { width:100%; max-width:360px; }
-    .kb-row { display:flex; gap:4px; justify-content:center; margin-bottom:4px; }
+    #virtual-keyboard { width:100%; max-width:340px; }
+    .kb-row { display:flex; gap:3px; justify-content:center; margin-bottom:3px; }
     .kb-key {
-      min-width:30px; height:36px; line-height:36px;
-      border-radius:5px; font-size:13px; font-weight:bold;
-      text-align:center; background:#2a2a2a;
-      border:1px solid #555; color:#fff;
-      cursor:pointer; user-select:none; padding:0 4px;
-      transition:background 0.1s;
+      min-width:28px; height:34px; line-height:34px; border-radius:4px;
+      font-size:12px; font-weight:bold; text-align:center;
+      background:#2a2a2a; border:1px solid #555; color:#fff;
+      cursor:pointer; user-select:none; padding:0 3px;
     }
     .kb-key:active { background:#555; }
-    .kb-backspace { background:#3a1a00; border-color:#ff6a00; color:#ff9900; min-width:46px; }
-
-    #overlay-error { color:#ff5c5c; font-size:12px; min-height:16px; }
+    .kb-backspace { background:#3a1a00; border-color:#ff6a00; color:#ff9900; min-width:42px; }
+    #overlay-error { color:#ff5c5c; font-size:11px; min-height:14px; }
     #validate-btn {
-      padding:10px 28px; font-size:15px;
-      background:#ffd700; color:#111;
-      border:none; border-radius:5px;
-      cursor:pointer; font-family:'Courier New', monospace; font-weight:bold;
+      padding:9px 26px; font-size:14px; background:#ffd700; color:#111;
+      border:none; border-radius:5px; cursor:pointer;
+      font-family:'Courier New',monospace; font-weight:bold;
     }
     #validate-btn:disabled { background:#444; color:#777; cursor:default; }
 
-    /* ── Écran START ── */
+    /* START */
     #start-screen {
-      position:fixed; inset:0;
-      background:#111;
+      position:fixed; inset:0; background:#0a0a0a;
       display:flex; flex-direction:column;
       align-items:center; justify-content:center;
-      z-index:99999; gap:16px; cursor:pointer;
+      z-index:99999; gap:18px; cursor:pointer;
     }
-    #start-screen h1 { color:#ffd700; font-size:28px; font-family:'Courier New',monospace; text-align:center; }
-    #start-screen p  { color:#aaa; font-size:14px; font-family:'Courier New',monospace; text-align:center; }
-    #start-screen .tap { color:#fff; font-size:18px; animation: blink 1s infinite; font-family:'Courier New',monospace; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+    #start-screen h1 { color:#ffd700; font-size:30px; text-align:center; line-height:1.3; }
+    #start-screen p  { color:#888; font-size:13px; text-align:center; }
+    .tap { color:#fff; font-size:17px; animation:blink 1s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
   </style>
 </head>
 <body>
 
-  <!-- Écran de démarrage -->
   <div id="start-screen" onclick="startGame()">
     <h1>⭐ Diego's<br>Adventure ⭐</h1>
-    <p>Collecte les étoiles<br>et décrypte le message !</p>
-    <div class="tap">[ APPUIE POUR JOUER ]</div>
+    <p>Collecte les étoiles<br>et trouve le mot secret !</p>
+    <div class="tap">[ TOUCHE POUR JOUER ]</div>
   </div>
 
-  <!-- HUD -->
   <div id="ui">
-    <div>Niv.<span id="ui-level">1</span> — <span id="ui-levelname">GLACE</span></div>
+    <div>Niv.<span id="ui-level">1</span> <span id="ui-levelname">GLACE</span></div>
     <div>⭐ <span id="ui-stars">0/5</span></div>
     <div>🔤 <span id="ui-letters">_____</span></div>
   </div>
 
-  <!-- Jeu -->
-  <canvas id="gameCanvas" width="400" height="580"></canvas>
+  <canvas id="gameCanvas" width="360" height="640"></canvas>
 
-  <!-- Contrôles tactiles -->
-  <div id="controls">
-    <div class="ctrl-row">
-      <button class="ctrl-btn btn-left"  id="btn-left">◀</button>
-      <button class="ctrl-btn btn-jump"  id="btn-jump">⬆ SAUTE</button>
-      <button class="ctrl-btn btn-right" id="btn-right">▶</button>
-    </div>
+  <div id="touch-pad">
+    <div id="pad-left-hint">◀◀</div>
+    <div id="pad-right-hint">▶▶</div>
+    <div id="pad-cursor"></div>
   </div>
 
-  <!-- Overlay fin de niveau -->
   <div id="message-overlay">
     <h2 id="overlay-title">Niveau terminé !</h2>
     <p class="hint-txt" id="overlay-hint"></p>
-    <p style="font-size:12px;color:#888;">Lettres trouvées :</p>
+    <p style="font-size:11px;color:#888;">Lettres trouvées :</p>
     <div id="overlay-letters"></div>
-    <p style="font-size:12px;color:#aaa;margin-top:4px;">Forme le mot :</p>
+    <p style="font-size:11px;color:#aaa;margin-top:4px;">Forme le mot :</p>
     <div id="answer-display"></div>
     <div id="overlay-error"></div>
     <div id="virtual-keyboard"></div>
