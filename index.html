@@ -2,132 +2,175 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Diego's Adventure</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      background: #111;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      font-family: 'Courier New', monospace;
-      overflow: hidden;
+      background:#111;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:flex-start;
+      min-height:100vh;
+      font-family:'Courier New', monospace;
+      overflow:hidden;
     }
+
+    /* ── HUD au-dessus du canvas ── */
     #ui {
-      color: #fff; font-size: 14px; margin-bottom: 8px;
-      display: flex; gap: 30px; align-items: center;
+      color:#fff; font-size:13px;
+      width:400px; max-width:100vw;
+      display:flex; justify-content:space-between;
+      padding:6px 10px;
+      background:#1a1a1a;
+      border-bottom:2px solid #333;
     }
-    #ui span { color: #ffd700; font-weight: bold; }
-    canvas { border: 3px solid #444; display: block; image-rendering: pixelated; }
+    #ui span { color:#ffd700; font-weight:bold; }
 
-    /* ── OVERLAY ── */
+    /* ── Canvas ── */
+    canvas {
+      display:block;
+      width:400px; max-width:100vw;
+      image-rendering:pixelated;
+    }
+
+    /* ── Clavier virtuel sous le canvas ── */
+    #controls {
+      width:400px; max-width:100vw;
+      background:#1a1a1a;
+      border-top:2px solid #333;
+      padding:8px 6px 10px;
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .ctrl-row { display:flex; justify-content:center; gap:6px; }
+    .ctrl-btn {
+      background:#2a2a2a; color:#fff;
+      border:2px solid #444; border-radius:8px;
+      font-size:20px; font-weight:bold;
+      cursor:pointer; user-select:none;
+      -webkit-user-select:none;
+      transition:background 0.1s, transform 0.08s;
+    }
+    .ctrl-btn:active { background:#555; transform:scale(0.93); }
+    .btn-left, .btn-right { width:80px; height:50px; }
+    .btn-jump { width:120px; height:50px; background:#1a3a1a; border-color:#3a8a3a; font-size:24px; }
+
+    /* ── OVERLAY fin de niveau ── */
     #message-overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.88);
-      justify-content: center; align-items: center; flex-direction: column;
-      color: #fff; font-family: 'Courier New', monospace;
-      z-index: 9999;
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.92);
+      justify-content:center; align-items:center; flex-direction:column;
+      color:#fff; font-family:'Courier New', monospace;
+      z-index:9999; gap:8px;
+      padding:20px;
     }
-    #message-overlay.active { display: flex; }
-    #message-overlay h2 { font-size: 26px; color: #ffd700; margin-bottom: 12px; }
-    #message-overlay .hint { color: #aaa; font-size: 13px; margin: 6px 0 10px; }
+    #message-overlay.active { display:flex; }
+    #message-overlay h2 { font-size:22px; color:#ffd700; text-align:center; }
+    .hint-txt { color:#aaa; font-size:12px; }
 
-    /* Cases lettres collectées */
-    #overlay-letters { display: flex; gap: 8px; margin: 8px 0; }
+    /* Lettres trouvées */
+    #overlay-letters { display:flex; gap:6px; }
     .letter-slot {
-      width: 42px; height: 48px; line-height: 48px;
-      border-radius: 7px; font-size: 24px; font-weight: bold;
-      text-align: center; border: 2px solid rgba(255,255,255,0.15);
-      background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.2);
+      width:44px; height:50px; line-height:50px;
+      border-radius:7px; font-size:24px; font-weight:bold;
+      text-align:center;
+      background:rgba(255,255,255,0.08);
+      color:rgba(255,255,255,0.2);
+      border:2px solid rgba(255,255,255,0.12);
     }
     .letter-slot.found {
-      background: #ffd700; color: #1a0a00;
-      border-color: #ffec5c; box-shadow: 0 0 12px #ffd70077;
+      background:#ffd700; color:#1a0a00;
+      border-color:#ffec5c; box-shadow:0 0 10px #ffd70066;
     }
 
-    /* Zone réponse : cases à remplir */
-    #answer-display { display: flex; gap: 8px; margin: 14px 0 6px; }
+    /* Cases réponse */
+    #answer-display { display:flex; gap:6px; }
     .answer-slot {
-      width: 46px; height: 52px; line-height: 52px;
-      border-radius: 7px; font-size: 26px; font-weight: bold;
-      text-align: center; background: #1a1a1a;
-      border: 2px solid #ffd700; color: #fff;
-      cursor: pointer; transition: background 0.15s;
+      width:44px; height:50px; line-height:50px;
+      border-radius:7px; font-size:24px; font-weight:bold;
+      text-align:center; background:#1a1a1a;
+      border:2px solid #ffd700; color:#fff;
+      cursor:pointer;
     }
-    .answer-slot:hover { background: #2a2a00; }
 
-    /* Clavier virtuel A–Z */
-    #virtual-keyboard { margin: 10px 0 6px; max-width: 420px; }
-    .kb-row { display: flex; gap: 5px; justify-content: center; margin-bottom: 5px; }
+    /* Clavier A-Z overlay */
+    #virtual-keyboard { width:100%; max-width:360px; }
+    .kb-row { display:flex; gap:4px; justify-content:center; margin-bottom:4px; }
     .kb-key {
-      width: 36px; height: 36px; line-height: 36px;
-      border-radius: 5px; font-size: 15px; font-weight: bold;
-      text-align: center; background: #2a2a2a;
-      border: 1px solid #555; color: #fff;
-      cursor: pointer; user-select: none;
-      transition: background 0.1s, transform 0.08s;
+      min-width:30px; height:36px; line-height:36px;
+      border-radius:5px; font-size:13px; font-weight:bold;
+      text-align:center; background:#2a2a2a;
+      border:1px solid #555; color:#fff;
+      cursor:pointer; user-select:none; padding:0 4px;
+      transition:background 0.1s;
     }
-    .kb-key:hover  { background: #444; }
-    .kb-key:active { transform: scale(0.9); }
-    .kb-key.used   { background: #111; color: #444; border-color: #333; pointer-events: none; }
-    .kb-backspace {
-      width: 56px; background: #3a1a00; border-color: #ff6a00; color: #ff9900;
-    }
+    .kb-key:active { background:#555; }
+    .kb-backspace { background:#3a1a00; border-color:#ff6a00; color:#ff9900; min-width:46px; }
 
-    #overlay-error { color: #ff5c5c; font-size: 13px; min-height: 18px; margin: 2px 0; }
-
+    #overlay-error { color:#ff5c5c; font-size:12px; min-height:16px; }
     #validate-btn {
-      margin-top: 10px; padding: 10px 32px;
-      font-size: 16px; background: #ffd700; color: #111;
-      border: none; border-radius: 5px; cursor: pointer;
-      font-family: 'Courier New', monospace; font-weight: bold;
+      padding:10px 28px; font-size:15px;
+      background:#ffd700; color:#111;
+      border:none; border-radius:5px;
+      cursor:pointer; font-family:'Courier New', monospace; font-weight:bold;
     }
-    #validate-btn:hover { background: #ffec5c; }
-    #validate-btn:disabled { background: #555; color: #999; cursor: default; }
+    #validate-btn:disabled { background:#444; color:#777; cursor:default; }
 
-    /* Blague */
-    #overlay-joke {
-      margin-top: 10px; padding: 10px 18px;
-      background: rgba(255,255,255,0.06); border-left: 4px solid #ffd700;
-      border-radius: 6px; color: #ddd; font-size: 13px;
-      white-space: pre-line; max-width: 400px; line-height: 1.5;
+    /* ── Écran START ── */
+    #start-screen {
+      position:fixed; inset:0;
+      background:#111;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      z-index:99999; gap:16px; cursor:pointer;
     }
-    #overlay-joke::before {
-      content: '😂  '; display: inline;
-    }
+    #start-screen h1 { color:#ffd700; font-size:28px; font-family:'Courier New',monospace; text-align:center; }
+    #start-screen p  { color:#aaa; font-size:14px; font-family:'Courier New',monospace; text-align:center; }
+    #start-screen .tap { color:#fff; font-size:18px; animation: blink 1s infinite; font-family:'Courier New',monospace; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
   </style>
 </head>
 <body>
-  <div id="ui">
-    <div>NIVEAU : <span id="ui-level">1 - GLACE</span></div>
-    <div>ÉTOILES : <span id="ui-stars">0/5</span></div>
-    <div>LETTRES : <span id="ui-letters">_____</span></div>
-  </div>
-  <canvas id="gameCanvas" width="900" height="500"></canvas>
 
+  <!-- Écran de démarrage -->
+  <div id="start-screen" onclick="startGame()">
+    <h1>⭐ Diego's<br>Adventure ⭐</h1>
+    <p>Collecte les étoiles<br>et décrypte le message !</p>
+    <div class="tap">[ APPUIE POUR JOUER ]</div>
+  </div>
+
+  <!-- HUD -->
+  <div id="ui">
+    <div>Niv.<span id="ui-level">1</span> — <span id="ui-levelname">GLACE</span></div>
+    <div>⭐ <span id="ui-stars">0/5</span></div>
+    <div>🔤 <span id="ui-letters">_____</span></div>
+  </div>
+
+  <!-- Jeu -->
+  <canvas id="gameCanvas" width="400" height="580"></canvas>
+
+  <!-- Contrôles tactiles -->
+  <div id="controls">
+    <div class="ctrl-row">
+      <button class="ctrl-btn btn-left"  id="btn-left">◀</button>
+      <button class="ctrl-btn btn-jump"  id="btn-jump">⬆ SAUTE</button>
+      <button class="ctrl-btn btn-right" id="btn-right">▶</button>
+    </div>
+  </div>
+
+  <!-- Overlay fin de niveau -->
   <div id="message-overlay">
     <h2 id="overlay-title">Niveau terminé !</h2>
-    <p style="font-size:13px;color:#aaa;margin-bottom:4px;">Lettres trouvées :</p>
+    <p class="hint-txt" id="overlay-hint"></p>
+    <p style="font-size:12px;color:#888;">Lettres trouvées :</p>
     <div id="overlay-letters"></div>
-    <p class="hint" id="overlay-hint"></p>
-
-    <p style="font-size:13px;color:#aaa;margin-bottom:4px;">Forme le mot avec le clavier :</p>
+    <p style="font-size:12px;color:#aaa;margin-top:4px;">Forme le mot :</p>
     <div id="answer-display"></div>
     <div id="overlay-error"></div>
-
     <div id="virtual-keyboard"></div>
-
     <button id="validate-btn" onclick="checkAnswer()" disabled>VALIDER →</button>
-    <div id="overlay-joke"></div>
   </div>
 
   <script src="js/music.js"></script>
   <script src="js/game.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => { createMuteButton(); });
-  </script>
 </body>
 </html>
