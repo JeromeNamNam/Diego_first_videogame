@@ -115,11 +115,12 @@ function padToSpeed(clientX) {
 pad.addEventListener('pointerdown', e=>{
   e.preventDefault();
   if (gameState!=='playing') return;
-  padActive=true; padTapStart=Date.now();
-  padX = e.clientX;
+  padActive=true; padX=e.clientX;
   padCursor.style.display='block';
   updateCursor(e);
   pad.setPointerCapture(e.pointerId);
+  // Saut immédiat au toucher — direction lue en continu pendant le saut
+  if (player.onGround) { player.vy=JUMP; player.onGround=false; }
 });
 pad.addEventListener('pointermove', e=>{
   if (!padActive) return;
@@ -129,21 +130,12 @@ pad.addEventListener('pointermove', e=>{
 });
 pad.addEventListener('pointerup', e=>{
   e.preventDefault();
-  const dt = Date.now() - padTapStart;
-  // Tap court au centre → saut
-  const rect = pad.getBoundingClientRect();
-  const cx = rect.left + rect.width/2;
-  const distCenter = Math.abs(e.clientX - cx);
-  if (dt < 220 && distCenter < rect.width*0.25 && player.onGround) {
-    player.vy = JUMP; player.onGround=false;
-  }
   padActive=false;
   padCursor.style.display='none';
-  keys['ArrowLeft']=false; keys['ArrowRight']=false;
 });
 pad.addEventListener('pointercancel', ()=>{
-  padActive=false; padCursor.style.display='none';
-  keys['ArrowLeft']=false; keys['ArrowRight']=false;
+  padActive=false;
+  padCursor.style.display='none';
 });
 
 function updateCursor(e) {
@@ -178,17 +170,13 @@ function update() {
   if (gameState!=='playing') return;
   const lvl=LEVELS[currentLevel];
 
-  // Vitesse depuis pad tactile
+  // Vitesse depuis pad tactile — direction active en l'air aussi
   let speed = 0;
   if (padActive) {
     const ratio = padToSpeed(padX);
     if (Math.abs(ratio) > 0.08) {
       speed = ratio * PAD_MAX_SPEED;
       player.facing = ratio>0?1:-1;
-    }
-    // Maintien saut si pad actif et espace enfoncé
-    if ((keys['Space']||keys['ArrowUp']) && player.onGround) {
-      player.vy=JUMP; player.onGround=false;
     }
   }
   // Clavier physique override

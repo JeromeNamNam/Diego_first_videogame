@@ -18,11 +18,22 @@ function initAudio() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  // iOS Safari : resume() doit être dans le même tick que le geste
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().then(() => {
+      // Jouer un silence d'1ms pour débloquer iOS complètement
+      const buf = audioCtx.createBuffer(1, 1, 22050);
+      const src = audioCtx.createBufferSource();
+      src.buffer = buf;
+      src.connect(audioCtx.destination);
+      src.start(0);
+    });
+  }
 }
 
 function startMusic(levelIdx) {
-  if (!audioCtx || audioCtx.state === 'suspended') return;
+  if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') { audioCtx.resume(); }
   if (currentMusicLevel === levelIdx && musicPlaying) return;
   stopMusic();
 

@@ -35,16 +35,19 @@
     }
     #ui span { color:#ffd700; font-weight:bold; }
 
-    /* Canvas : occupe l'espace disponible en gardant le ratio 9/16 */
+    /* Canvas : ratio 9/16 strict — pas d'étirement */
     #canvas-wrapper {
       width:100%; flex:1 1 auto;
       position:relative; overflow:hidden;
       background:#111;
+      display:flex; align-items:center; justify-content:center;
     }
     canvas {
-      position:absolute; top:0; left:0;
-      width:100% !important; height:100% !important;
+      /* Occupe toute la hauteur dispo, largeur calculée pour 9/16 */
+      height:100%; width:auto;
+      max-width:100%;
       image-rendering:pixelated;
+      display:block;
     }
 
     /* Zone contrôle tactile */
@@ -147,7 +150,7 @@
 </head>
 <body>
 
-  <div id="start-screen" onclick="startGame()">
+  <div id="start-screen" onclick="startGame()" ontouchend="startGame()">
     <h1>⭐ Diego's<br>Adventure ⭐</h1>
     <p>Collecte les étoiles<br>et trouve le mot secret !</p>
     <div class="tap">[ TOUCHE POUR JOUER ]</div>
@@ -181,7 +184,7 @@
     <button id="validate-btn" onclick="checkAnswer()" disabled>VALIDER →</button>
   </div>
 
-  <script src="js/music.js?v=1773940812"></script>
-  <script src="js/game.js?v=1773940812"></script>
+  <script src="js/music.js?v=1773941216"></script>
+  <script src="js/game.js?v=1773941216"></script>
 </body>
 </html>
