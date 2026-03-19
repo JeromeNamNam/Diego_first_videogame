@@ -444,16 +444,17 @@ function showWin(){
 
 // ── START SCREEN iOS fix ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', ()=>{
-  const ss=document.getElementById('start-screen');
-  if(!ss) return;
-  let started=false;
-  function doStart(e){
-    if(started) return; started=true;
-    e.preventDefault();
+  const btn = document.getElementById('play-btn');
+  if (!btn) return;
+  let started = false;
+  function doStart(e) {
+    if (started) return; started = true;
+    e.preventDefault(); e.stopPropagation();
     startGame();
   }
-  ss.addEventListener('touchend', doStart, {passive:false});
-  ss.addEventListener('click', doStart);
+  // Un seul listener sur le vrai bouton — iOS respecte le geste sur <button>
+  btn.addEventListener('touchend', doStart, {passive:false});
+  btn.addEventListener('click',    doStart);
 });
 
 // ── BOUCLE ───────────────────────────────────────────────────
